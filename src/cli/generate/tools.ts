@@ -52,7 +52,7 @@ export function buildToolMetadata(tool: ServerToolInfo): ToolMetadata {
 
 export function buildEmbeddedSchemaMap(tools: ToolMetadata[]): Record<string, unknown> {
   const result: Record<string, unknown> = {};
-  for (const entry of tools) {
+  for (const entry of tools.toSorted((left, right) => left.tool.name.localeCompare(right.tool.name))) {
     if (entry.tool.inputSchema && typeof entry.tool.inputSchema === 'object') {
       result[entry.tool.name] = entry.tool.inputSchema;
     }

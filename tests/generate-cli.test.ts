@@ -468,6 +468,39 @@ describeGenerateCli('generateCli', () => {
     expect(JSON.parse(callStdout)).toEqual({ result: 42 });
   }, 60_000);
 
+  it('generates byte-identical bundles for unchanged inputs', async () => {
+    const inline = JSON.stringify({
+      name: 'deterministic-bundle',
+      description: 'Deterministic bundle integration server',
+      command: baseUrl.toString(),
+    });
+    const firstBundlePath = path.join(tmpDir, 'deterministic-a.js');
+    const secondBundlePath = path.join(tmpDir, 'deterministic-b.js');
+    await fs.rm(firstBundlePath, { force: true });
+    await fs.rm(secondBundlePath, { force: true });
+    await ensureDistBuilt();
+
+    await generateCli({
+      serverRef: inline,
+      runtime: 'node',
+      timeoutMs: 5_000,
+      bundle: firstBundlePath,
+    });
+    await generateCli({
+      serverRef: inline,
+      runtime: 'node',
+      timeoutMs: 5_000,
+      bundle: secondBundlePath,
+    });
+
+    const first = await fs.readFile(firstBundlePath, 'utf8');
+    const second = await fs.readFile(secondBundlePath, 'utf8');
+    expect(first).toBe(second);
+    expect(first).not.toContain(firstBundlePath);
+    expect(first).not.toContain(secondBundlePath);
+    expect(first).not.toMatch(/mcporter-cli-[A-Za-z0-9]{6}/);
+  }, 60_000);
+
   it('maps CLI options to Commander camelCase properties', async () => {
     const inline = JSON.stringify({
       name: 'case-options',

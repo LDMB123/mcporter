@@ -2,7 +2,9 @@
 
 ## [0.11.2] - Unreleased
 
-- Nothing yet.
+### CLI
+
+- Make `generate-cli --bundle` artifacts deterministic by removing bundle-only paths/timestamps from embedded metadata and sorting generated tool/schema output. (Issue #180, thanks @imroc)
 
 ## [0.11.1] - 2026-05-14
 
