@@ -200,6 +200,7 @@ describe('mcporter serve bridge', () => {
         server: 'alpha',
         includeSchema: true,
         autoAuthorize: true,
+        allowCachedAuth: true,
       });
       expect(baseRuntime.listTools).not.toHaveBeenCalled();
 

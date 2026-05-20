@@ -34,6 +34,7 @@ export interface ListToolsParams {
   readonly server: string;
   readonly includeSchema?: boolean;
   readonly autoAuthorize?: boolean;
+  readonly allowCachedAuth?: boolean;
 }
 
 export interface ListResourcesParams {

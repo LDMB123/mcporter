@@ -1,21 +1,21 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ServerDefinition } from '../src/config.js';
 import { __testProcessRequest } from '../src/daemon/host.js';
 import type { DaemonRequest } from '../src/daemon/protocol.js';
 import type { Runtime } from '../src/runtime.js';
 
 describe('daemon host request handling', () => {
-  it('reuses pre-parsed requests without reparsing payloads', async () => {
-    const metadata = {
-      configPath: '/tmp/config.json',
-      configLayers: [],
-      configMtimeMs: Date.now(),
-      socketPath: '/tmp/socket',
-      startedAt: Date.now(),
-      logPath: null,
-    };
-    const logContext = { enabled: false, logAllServers: false, servers: new Set<string>() };
+  const metadata = {
+    configPath: '/tmp/config.json',
+    configLayers: [],
+    configMtimeMs: Date.now(),
+    socketPath: '/tmp/socket',
+    startedAt: Date.now(),
+    logPath: null,
+  };
+  const logContext = { enabled: false, logAllServers: false, servers: new Set<string>() };
 
+  it('reuses pre-parsed requests without reparsing payloads', async () => {
     const parsedRequest: DaemonRequest = { id: '1', method: 'status', params: {} };
     const result = await __testProcessRequest(
       '!!!invalid-json!!!',
@@ -30,4 +30,69 @@ describe('daemon host request handling', () => {
     expect(result.response.ok).toBe(true);
     expect(result.shouldShutdown).toBe(false);
   });
+
+  it('defaults daemon callTool and listTools requests to cached auth', async () => {
+    const runtime = createRuntimeDouble();
+    const managedServers = createManagedServers();
+
+    await __testProcessRequest('', runtime as unknown as Runtime, managedServers, new Map(), metadata, logContext, {
+      id: 'call',
+      method: 'callTool',
+      params: { server: 'oauth', tool: 'ping' },
+    });
+
+    expect(runtime.callTool).toHaveBeenCalledWith('oauth', 'ping', {
+      args: {},
+      timeoutMs: undefined,
+    });
+
+    await __testProcessRequest('', runtime as unknown as Runtime, managedServers, new Map(), metadata, logContext, {
+      id: 'list',
+      method: 'listTools',
+      params: { server: 'oauth', includeSchema: true },
+    });
+
+    expect(runtime.listTools).toHaveBeenCalledWith('oauth', {
+      includeSchema: true,
+      autoAuthorize: undefined,
+      allowCachedAuth: true,
+    });
+  });
+
+  it('preserves explicit listTools cached-auth opt out on daemon requests', async () => {
+    const runtime = createRuntimeDouble();
+    const managedServers = createManagedServers();
+
+    await __testProcessRequest('', runtime as unknown as Runtime, managedServers, new Map(), metadata, logContext, {
+      id: 'list',
+      method: 'listTools',
+      params: { server: 'oauth', allowCachedAuth: false },
+    });
+
+    expect(runtime.listTools).toHaveBeenCalledWith('oauth', {
+      includeSchema: undefined,
+      autoAuthorize: undefined,
+      allowCachedAuth: false,
+    });
+  });
 });
+
+function createRuntimeDouble(): Pick<Runtime, 'callTool' | 'listTools'> {
+  return {
+    callTool: vi.fn().mockResolvedValue({ ok: true }),
+    listTools: vi.fn().mockResolvedValue([]),
+  };
+}
+
+function createManagedServers(): Map<string, ServerDefinition> {
+  return new Map([
+    [
+      'oauth',
+      {
+        name: 'oauth',
+        command: { kind: 'http', url: new URL('https://oauth.example.com/mcp') },
+        lifecycle: { mode: 'keep-alive' },
+      },
+    ],
+  ]);
+}

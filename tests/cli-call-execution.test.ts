@@ -82,7 +82,11 @@ describe('CLI call execution behavior', () => {
         },
       })
     );
-    expect(listTools).toHaveBeenCalledWith('slack', { autoAuthorize: true, includeSchema: true });
+    expect(listTools).toHaveBeenCalledWith('slack', {
+      autoAuthorize: true,
+      includeSchema: true,
+      allowCachedAuth: true,
+    });
     logSpy.mockRestore();
   });
 
@@ -117,7 +121,11 @@ describe('CLI call execution behavior', () => {
         },
       })
     );
-    expect(listTools).toHaveBeenCalledWith('email', { autoAuthorize: true, includeSchema: true });
+    expect(listTools).toHaveBeenCalledWith('email', {
+      autoAuthorize: true,
+      includeSchema: true,
+      allowCachedAuth: true,
+    });
     logSpy.mockRestore();
   });
 
@@ -326,7 +334,11 @@ describe('CLI call execution behavior', () => {
     expect(callTool).toHaveBeenCalledTimes(2);
     expect(callTool).toHaveBeenNthCalledWith(1, 'linear', 'listIssues', expect.objectContaining({ args: {} }));
     expect(callTool).toHaveBeenNthCalledWith(2, 'linear', 'list_issues', expect.objectContaining({ args: {} }));
-    expect(listTools).toHaveBeenCalledWith('linear', { autoAuthorize: true, includeSchema: false });
+    expect(listTools).toHaveBeenCalledWith('linear', {
+      autoAuthorize: true,
+      includeSchema: false,
+      allowCachedAuth: true,
+    });
 
     logSpy.mockRestore();
   });

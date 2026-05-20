@@ -105,7 +105,20 @@ describe('createKeepAliveRuntime', () => {
     });
 
     await keepAliveRuntime.listTools('alpha', { includeSchema: true });
-    expect(daemon.listTools).toHaveBeenCalledWith({ server: 'alpha', includeSchema: true, autoAuthorize: undefined });
+    expect(daemon.listTools).toHaveBeenCalledWith({
+      server: 'alpha',
+      includeSchema: true,
+      autoAuthorize: undefined,
+      allowCachedAuth: true,
+    });
+
+    await keepAliveRuntime.listTools('alpha', { allowCachedAuth: false });
+    expect(daemon.listTools).toHaveBeenLastCalledWith({
+      server: 'alpha',
+      includeSchema: undefined,
+      autoAuthorize: undefined,
+      allowCachedAuth: false,
+    });
 
     await keepAliveRuntime.listResources('alpha', { cursor: '1' });
     expect(daemon.listResources).toHaveBeenCalledWith({ server: 'alpha', params: { cursor: '1' } });

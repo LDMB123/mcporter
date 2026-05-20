@@ -103,7 +103,13 @@ export async function callOnce(params: {
 
 class McpRuntime implements Runtime {
   private readonly definitions: Map<string, ServerDefinition>;
-  private readonly clients = new Map<string, Promise<ClientContext>>();
+  private readonly clients = new Map<
+    string,
+    {
+      readonly promise: Promise<ClientContext>;
+      readonly allowCachedAuth: boolean | undefined;
+    }
+  >();
   private readonly logger: RuntimeLogger;
   private readonly clientInfo: { name: string; version: string };
   private readonly oauthTimeoutMs?: number;
@@ -150,12 +156,12 @@ class McpRuntime implements Runtime {
   }
 
   async getInstructions(server: string): Promise<string | undefined> {
-    const contextPromise = this.clients.get(server.trim());
-    if (!contextPromise) {
+    const cached = this.clients.get(server.trim());
+    if (!cached) {
       return undefined;
     }
     try {
-      const context = await contextPromise;
+      const context = await cached.promise;
       const instructions =
         typeof context.client.getInstructions === 'function' ? context.client.getInstructions() : undefined;
       if (typeof instructions !== 'string') {
@@ -175,7 +181,7 @@ class McpRuntime implements Runtime {
     const context = await this.connect(server, {
       maxOAuthAttempts: autoAuthorize ? undefined : 0,
       skipCache: !autoAuthorize,
-      allowCachedAuth: options.allowCachedAuth,
+      allowCachedAuth: options.allowCachedAuth ?? true,
       oauthSessionOptions: options.oauthSessionOptions,
     });
     try {
@@ -218,7 +224,9 @@ class McpRuntime implements Runtime {
       );
     }
     try {
-      const { client } = await this.connect(server);
+      const { client } = await this.connect(server, {
+        allowCachedAuth: true,
+      });
       const params: CallToolRequest['params'] = {
         name: toolName,
         arguments: options.args ?? {},
@@ -276,7 +284,10 @@ class McpRuntime implements Runtime {
     if (useCache) {
       const existing = this.clients.get(normalized);
       if (existing) {
-        return existing;
+        if (existing.allowCachedAuth === options.allowCachedAuth || options.allowCachedAuth === undefined) {
+          return existing.promise;
+        }
+        await this.close(normalized).catch(() => {});
       }
     }
 
@@ -294,7 +305,7 @@ class McpRuntime implements Runtime {
     });
 
     if (useCache) {
-      this.clients.set(normalized, connection);
+      this.clients.set(normalized, { promise: connection, allowCachedAuth: options.allowCachedAuth });
       try {
         return await connection;
       } catch (error) {
@@ -310,10 +321,11 @@ class McpRuntime implements Runtime {
   async close(server?: string): Promise<void> {
     if (server) {
       const normalized = server.trim();
-      const context = await this.clients.get(normalized);
-      if (!context) {
+      const cached = this.clients.get(normalized);
+      if (!cached) {
         return;
       }
+      const context = await cached.promise;
       await context.client.close().catch(() => {});
       await closeTransportAndWait(this.logger, context.transport).catch(() => {});
       await context.oauthSession?.close().catch(() => {});
@@ -321,9 +333,9 @@ class McpRuntime implements Runtime {
       return;
     }
 
-    for (const [name, promise] of this.clients.entries()) {
+    for (const [name, cached] of this.clients.entries()) {
       try {
-        const context = await promise;
+        const context = await cached.promise;
         await context.client.close().catch(() => {});
         await closeTransportAndWait(this.logger, context.transport).catch(() => {});
         await context.oauthSession?.close().catch(() => {});

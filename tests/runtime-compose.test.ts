@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => {
   const listToolsMock = vi.fn();
   const callToolMock = vi.fn();
   const listResourcesMock = vi.fn();
+  const readCachedAccessTokenMock = vi.fn();
   const clientInstances: unknown[] = [];
   const streamableInstances: unknown[] = [];
   const stdioInstances: unknown[] = [];
@@ -71,6 +72,7 @@ const mocks = vi.hoisted(() => {
     listToolsMock,
     callToolMock,
     listResourcesMock,
+    readCachedAccessTokenMock,
     clientInstances,
     streamableInstances,
     stdioInstances,
@@ -102,6 +104,10 @@ vi.mock('@modelcontextprotocol/sdk/client/auth.js', () => ({
   UnauthorizedError: mocks.MockUnauthorizedError,
 }));
 
+vi.mock('../src/oauth-persistence.js', () => ({
+  readCachedAccessToken: mocks.readCachedAccessTokenMock,
+}));
+
 import { createRuntime } from '../src/runtime.js';
 
 describe('mcporter composability', () => {
@@ -110,6 +116,7 @@ describe('mcporter composability', () => {
     mocks.listToolsMock.mockReset();
     mocks.callToolMock.mockReset();
     mocks.listResourcesMock.mockReset();
+    mocks.readCachedAccessTokenMock.mockReset();
     mocks.clientInstances.length = 0;
     mocks.streamableInstances.length = 0;
     mocks.stdioInstances.length = 0;
@@ -117,6 +124,7 @@ describe('mcporter composability', () => {
     mocks.listToolsMock.mockResolvedValue({ tools: [] });
     mocks.callToolMock.mockResolvedValue({ ok: true });
     mocks.listResourcesMock.mockResolvedValue({ resources: [] });
+    mocks.readCachedAccessTokenMock.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -236,6 +244,60 @@ describe('mcporter composability', () => {
     const instance = mocks.stdioInstances.at(-1) as { options?: { env?: Record<string, string> } };
     expect(instance?.options?.env?.MCPORTER_STDIO_TEST).toBe('from-config');
     expect(instance?.options?.env?.EXTRA).toBe('42');
+  });
+
+  it('applies cached auth for callTool connections', async () => {
+    mocks.readCachedAccessTokenMock.mockResolvedValue('cached-token');
+    const runtime = await createRuntime({
+      servers: [
+        {
+          name: 'oauth',
+          command: { kind: 'http' as const, url: new URL('https://oauth.example.com/mcp') },
+        },
+      ],
+    });
+
+    try {
+      await runtime.callTool('oauth', 'ping');
+      expect(mocks.readCachedAccessTokenMock).toHaveBeenCalledOnce();
+      const streamableTransport = mocks.streamableInstances[0] as {
+        options?: { requestInit?: { headers?: Record<string, string> } };
+      };
+      expect(streamableTransport.options?.requestInit?.headers).toEqual({
+        Authorization: 'Bearer cached-token',
+      });
+    } finally {
+      await runtime.close();
+    }
+  });
+
+  it('reconnects when callTool needs cached auth after an uncached connection', async () => {
+    const runtime = await createRuntime({
+      servers: [
+        {
+          name: 'oauth',
+          command: { kind: 'http' as const, url: new URL('https://oauth.example.com/mcp') },
+        },
+      ],
+    });
+
+    try {
+      await runtime.listTools('oauth', { allowCachedAuth: false });
+      expect(mocks.streamableInstances).toHaveLength(1);
+
+      mocks.readCachedAccessTokenMock.mockResolvedValue('cached-token');
+      await runtime.callTool('oauth', 'ping');
+
+      expect(mocks.streamableInstances).toHaveLength(2);
+      const streamableTransport = mocks.streamableInstances[1] as {
+        options?: { requestInit?: { headers?: Record<string, string> } };
+      };
+      expect(streamableTransport.options?.requestInit?.headers).toEqual({
+        Authorization: 'Bearer cached-token',
+      });
+    } finally {
+      await runtime.close();
+    }
   });
 });
 
