@@ -126,6 +126,7 @@ Edit guidance: keep the actual tool list inside this `<tools></tools>` block so 
 - Default fix style: prefer the clean refactor/fix boundary over a tiny shim when it reduces future bugs without much added complexity.
 - Autonomy yes: bug fixes with repro/root cause, bounded performance wins, small CLI/UI/UX polish, docs fixes, tests for these.
 - Ask first: new features/commands, broad behavior changes, new config/API surface, dependencies/build tooling, architecture shifts, unclear product calls.
+- Vision: if the repo has `VISION.md`, read it before triage; use it to decide what is automatic vs needs discussion.
 - PR/issue work: one ticket at a time. Ask whether the PR is the best option; push back or make a better PR when cleaner.
 - Research: read adjacent code deeply; use web/official docs when behavior, APIs, or dependencies are uncertain.
 - Verification: add focused regression tests; run full green gate; end-to-end/live test whenever possible.
