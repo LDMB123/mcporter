@@ -5,6 +5,7 @@
 ### CLI
 
 - Make `generate-cli --bundle` artifacts deterministic by removing bundle-only paths/timestamps from embedded metadata and sorting generated tool/schema output. (Issue #180, thanks @imroc)
+- Let daemon-managed OAuth servers reuse cached credentials for tool calls and tool listing after token expiry. (PR #182 / issue #181, thanks @bradhallett)
 
 ## [0.11.1] - 2026-05-14
 
