@@ -119,3 +119,17 @@ Edit guidance: keep the actual tool list inside this `<tools></tools>` block so 
 
 - Live Deepwiki tests are opt-in; run with `MCP_LIVE_TESTS=1 ./runner pnpm exec vitest run tests/live/deepwiki-live.test.ts` when you need real endpoint coverage.
 - The skipped OAuth-promotion case in `tests/runtime-transport.test.ts` can be validated by temporarily unskipping it (Vitest does not support `--runInBand`). Remove any temporary helper files after running.
+
+# Triage Scale
+
+- Default pace: take time; read more code; prefer high-certainty answers over fast guesses.
+- Default fix style: prefer the clean refactor/fix boundary over a tiny shim when it reduces future bugs without much added complexity.
+- Autonomy yes: bug fixes with repro/root cause, bounded performance wins, small CLI/UI/UX polish, docs fixes, tests for these.
+- Ask first: new features/commands, broad behavior changes, new config/API surface, dependencies/build tooling, architecture shifts, unclear product calls.
+- PR/issue work: one ticket at a time. Ask whether the PR is the best option; push back or make a better PR when cleaner.
+- Research: read adjacent code deeply; use web/official docs when behavior, APIs, or dependencies are uncertain.
+- Verification: add focused regression tests; run full green gate; end-to-end/live test whenever possible.
+- Live credentials: if a live test needs access, look for exact keys via `$one-password`; if unavailable, stop and ask for help before fixing/landing.
+- No unverifiable autonomous fixes: if you cannot prove the fix live or with equivalent local proof, ask before proceeding.
+- Review: use `$codex-review` before push/land for non-trivial code; keep going until no accepted/actionable findings remain.
+- Landing: update PR/description as needed, push branch or create PR, watch CI to green, then land. After land, checkout `main`, pull `--ff-only`, verify clean.
