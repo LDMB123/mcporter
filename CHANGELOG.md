@@ -1,6 +1,6 @@
 # mcporter Changelog
 
-## [0.11.3] - Unreleased
+## [0.11.3] - 2026-05-21
 
 - Fall back to `~/.mcporter/mcporter.json[c]` when `XDG_CONFIG_HOME` points at an empty mcporter config directory, preventing embedders from accidentally hiding the user server registry. (Issue #184, thanks @ChrisBot2026)
 
