@@ -1,5 +1,3 @@
-![MCPorter banner](docs/assets/readme-banner.jpg)
-
 # MCPorter 🧳 - Call MCPs from TypeScript or as CLI
 
 <p align="center">
