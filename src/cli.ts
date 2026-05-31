@@ -4,6 +4,7 @@ import { inferCommandRouting } from './cli/command-inference.js';
 import { CliUsageError } from './cli/errors.js';
 import { consumeHelpTokens, isHelpToken, isVersionToken, printHelp, printVersion } from './cli/help-output.js';
 import { logError, logInfo } from './cli/logger-context.js';
+import { isRecordReplayModeActive, isReplayModeActive } from './cli/record-replay-env.js';
 import { DEBUG_HANG, dumpActiveHandles, terminateChildProcesses } from './cli/runtime-debug.js';
 import { resolveConfigPath } from './config/path-discovery.js';
 import type { Runtime, RuntimeOptions } from './runtime.js';
@@ -154,6 +155,28 @@ export async function runCli(argv: string[]): Promise<void> {
     return;
   }
 
+  if (command === 'record') {
+    const { handleRecordCli, printRecordHelp } = await import('./cli/record-command.js');
+    if (consumeHelpTokens(wrapperArgsBeforeSeparator(args))) {
+      printRecordHelp();
+      process.exitCode = 0;
+      return;
+    }
+    await handleRecordCli(args);
+    return;
+  }
+
+  if (command === 'replay') {
+    const { handleReplayCli, printReplayHelp } = await import('./cli/replay-command.js');
+    if (consumeHelpTokens(wrapperArgsBeforeSeparator(args))) {
+      printReplayHelp();
+      process.exitCode = 0;
+      return;
+    }
+    await handleReplayCli(args);
+    return;
+  }
+
   if (command === 'config') {
     const { handleConfigCli } = await import('./cli/config-command.js');
     await handleConfigCli(
@@ -197,14 +220,17 @@ export async function runCli(argv: string[]): Promise<void> {
     import('./lifecycle.js'),
   ]);
   const baseRuntime = await createRuntime(runtimeOptionsWithPath);
-  const keepAliveServers = new Set(
-    baseRuntime
-      .getDefinitions()
-      .filter(isKeepAliveServer)
-      .map((entry) => entry.name)
-  );
+  const recordReplayModeActive = isRecordReplayModeActive();
+  const keepAliveServers = recordReplayModeActive
+    ? new Set<string>()
+    : new Set(
+        baseRuntime
+          .getDefinitions()
+          .filter(isKeepAliveServer)
+          .map((entry) => entry.name)
+      );
   const daemonClient =
-    keepAliveServers.size > 0
+    !recordReplayModeActive && keepAliveServers.size > 0
       ? new DaemonClient({
           configPath: configResolution.path,
           configExplicit: configResolution.explicit,
@@ -221,6 +247,7 @@ export async function runCli(argv: string[]): Promise<void> {
   const resolvedCommand = inference.command;
   const resolvedArgs = inference.args;
 
+  let primaryError: unknown;
   try {
     if (resolvedCommand === 'list') {
       if (consumeHelpTokens(resolvedArgs)) {
@@ -281,46 +308,68 @@ export async function runCli(argv: string[]): Promise<void> {
       await importedHandleResource(runtime, resolvedArgs);
       return;
     }
+  } catch (error) {
+    primaryError = error;
+    throw error;
   } finally {
-    const closeStart = Date.now();
-    if (DEBUG_HANG) {
-      logInfo('[debug] beginning runtime.close()');
-      dumpActiveHandles('before runtime.close');
-    }
-    try {
-      await runtime.close();
-      if (DEBUG_HANG) {
-        const duration = Date.now() - closeStart;
-        logInfo(`[debug] runtime.close() completed in ${duration}ms`);
-        dumpActiveHandles('after runtime.close');
-      }
-    } catch (error) {
-      if (DEBUG_HANG) {
-        logError('[debug] runtime.close() failed', error);
-      }
-    } finally {
-      terminateChildProcesses('runtime.finally');
-      // By default we force an exit after cleanup so Node doesn't hang on lingering stdio handles
-      // (see typescript-sdk#579/#780/#1049). Opt out by exporting MCPORTER_NO_FORCE_EXIT=1.
-      const disableForceExit = process.env.MCPORTER_NO_FORCE_EXIT === '1';
-      const shouldForceExit = !disableForceExit || process.env.MCPORTER_FORCE_EXIT === '1';
-      const scheduleForcedExit = () => {
-        if (shouldForceExit) {
-          setTimeout(() => {
-            process.exit(process.exitCode ?? 0);
-          }, FORCE_EXIT_GRACE_MS);
-        }
-      };
-      if (DEBUG_HANG) {
-        dumpActiveHandles('after terminateChildProcesses');
-        scheduleForcedExit();
-      } else {
-        setImmediate(scheduleForcedExit);
-      }
-    }
+    await closeRuntimeAfterCommand(runtime, { suppressReplayCloseError: primaryError !== undefined });
   }
   printHelp(`Unknown command '${resolvedCommand}'.`);
   process.exit(1);
+}
+
+async function closeRuntimeAfterCommand(
+  runtime: Runtime,
+  options: { readonly suppressReplayCloseError?: boolean } = {}
+): Promise<void> {
+  const closeStart = Date.now();
+  let closeError: unknown;
+  if (DEBUG_HANG) {
+    logInfo('[debug] beginning runtime.close()');
+    dumpActiveHandles('before runtime.close');
+  }
+  try {
+    await runtime.close();
+    if (DEBUG_HANG) {
+      const duration = Date.now() - closeStart;
+      logInfo(`[debug] runtime.close() completed in ${duration}ms`);
+      dumpActiveHandles('after runtime.close');
+    }
+  } catch (error) {
+    if (DEBUG_HANG) {
+      logError('[debug] runtime.close() failed', error);
+    }
+    if (isReplayModeActive() && !options.suppressReplayCloseError) {
+      closeError = error;
+    }
+  } finally {
+    terminateChildProcesses('runtime.finally');
+    // By default we force an exit after cleanup so Node doesn't hang on lingering stdio handles
+    // (see typescript-sdk#579/#780/#1049). Opt out by exporting MCPORTER_NO_FORCE_EXIT=1.
+    const disableForceExit = process.env.MCPORTER_NO_FORCE_EXIT === '1';
+    const shouldForceExit = !disableForceExit || process.env.MCPORTER_FORCE_EXIT === '1';
+    const scheduleForcedExit = () => {
+      if (shouldForceExit) {
+        setTimeout(() => {
+          process.exit(process.exitCode ?? 0);
+        }, FORCE_EXIT_GRACE_MS);
+      }
+    };
+    if (DEBUG_HANG) {
+      dumpActiveHandles('after terminateChildProcesses');
+      scheduleForcedExit();
+    } else {
+      setImmediate(scheduleForcedExit);
+    }
+  }
+  if (closeError) {
+    throw closeError;
+  }
+}
+
+function wrapperArgsBeforeSeparator(args: readonly string[]): string[] {
+  const separatorIndex = args.indexOf('--');
+  return separatorIndex === -1 ? [...args] : args.slice(0, separatorIndex);
 }
 
 // main parses CLI flags and dispatches to list/call commands.
@@ -360,6 +409,9 @@ async function maybeHandleDaemonFastCall(
   configResolution: { path: string; explicit: boolean },
   rootDir: string | undefined
 ): Promise<boolean> {
+  if (isRecordReplayModeActive()) {
+    return false;
+  }
   const callArgs = resolveDaemonFastCallArgs(command, args);
   if (!callArgs) {
     return false;
@@ -454,6 +506,8 @@ function isExplicitNonCallCommand(command: string): boolean {
     command === 'resources' ||
     command === 'daemon' ||
     command === 'serve' ||
+    command === 'record' ||
+    command === 'replay' ||
     command === 'config' ||
     command === 'emit-ts' ||
     command === 'generate-cli' ||

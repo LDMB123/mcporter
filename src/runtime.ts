@@ -6,6 +6,8 @@ import { closeTransportAndWait } from './runtime-process-utils.js';
 import './sdk-patches.js';
 import { shouldResetConnection } from './runtime/errors.js';
 import { resolveOAuthTimeoutFromEnv } from './runtime/oauth.js';
+import { resolveRecordingPath } from './runtime/record-transport.js';
+import { ReplayTransport } from './runtime/replay-transport.js';
 import { type ClientContext, createClientContext } from './runtime/transport.js';
 import { normalizeTimeout, raceWithTimeout } from './runtime/utils.js';
 import { filterTools, isToolAllowed, validateToolFilters } from './tool-filters.js';
@@ -113,6 +115,8 @@ class McpRuntime implements Runtime {
   private readonly logger: RuntimeLogger;
   private readonly clientInfo: { name: string; version: string };
   private readonly oauthTimeoutMs?: number;
+  private readonly recordPath?: string;
+  private readonly replayPath?: string;
 
   constructor(servers: ServerDefinition[], options: RuntimeOptions = {}) {
     for (const server of servers) {
@@ -125,6 +129,13 @@ class McpRuntime implements Runtime {
       version: MCPORTER_VERSION,
     };
     this.oauthTimeoutMs = options.oauthTimeoutMs;
+    const recordSession = process.env.MCPORTER_RECORD;
+    const replaySession = process.env.MCPORTER_REPLAY;
+    if (recordSession && replaySession) {
+      this.logger.warn('Both MCPORTER_RECORD and MCPORTER_REPLAY are set; recording mode wins.');
+    }
+    this.recordPath = recordSession ? resolveRecordingPath(recordSession) : undefined;
+    this.replayPath = !recordSession && replaySession ? resolveRecordingPath(replaySession) : undefined;
   }
 
   // listServers returns configured names sorted alphabetically for stable CLI output.
@@ -184,8 +195,9 @@ class McpRuntime implements Runtime {
       allowCachedAuth: options.allowCachedAuth ?? true,
       oauthSessionOptions: options.oauthSessionOptions,
     });
+    let closeError: unknown;
+    const tools: ServerToolInfo[] = [];
     try {
-      const tools: ServerToolInfo[] = [];
       let cursor: string | undefined;
       do {
         const response = await context.client.listTools(cursor ? { cursor } : undefined);
@@ -199,8 +211,6 @@ class McpRuntime implements Runtime {
         );
         cursor = response.nextCursor ?? undefined;
       } while (cursor);
-
-      return filterTools(tools, this.definitions.get(server.trim()));
     } catch (error) {
       // Keep-alive STDIO transports often die when Chrome closes; drop the cached client
       // so the next call spins up a fresh process instead of reusing the broken handle.
@@ -208,11 +218,18 @@ class McpRuntime implements Runtime {
       throw error;
     } finally {
       if (!autoAuthorize) {
-        await context.client.close().catch(() => {});
-        await closeTransportAndWait(this.logger, context.transport).catch(() => {});
-        await context.oauthSession?.close().catch(() => {});
+        try {
+          await this.closeContext(context);
+        } catch (error) {
+          closeError = error;
+        }
       }
     }
+    if (closeError !== undefined) {
+      throw closeError;
+    }
+
+    return filterTools(tools, this.definitions.get(server.trim()));
   }
 
   // callTool executes a tool using the args provided by the caller.
@@ -302,6 +319,8 @@ class McpRuntime implements Runtime {
       onDefinitionPromoted: (promoted) => this.definitions.set(promoted.name, promoted),
       allowCachedAuth: options.allowCachedAuth,
       oauthSessionOptions: options.oauthSessionOptions,
+      recordPath: this.recordPath,
+      replayPath: this.replayPath,
     });
 
     if (useCache) {
@@ -326,22 +345,50 @@ class McpRuntime implements Runtime {
         return;
       }
       const context = await cached.promise;
-      await context.client.close().catch(() => {});
-      await closeTransportAndWait(this.logger, context.transport).catch(() => {});
-      await context.oauthSession?.close().catch(() => {});
-      this.clients.delete(normalized);
+      try {
+        await this.closeContext(context);
+      } finally {
+        this.clients.delete(normalized);
+      }
       return;
     }
 
     for (const [name, cached] of this.clients.entries()) {
       try {
         const context = await cached.promise;
-        await context.client.close().catch(() => {});
-        await closeTransportAndWait(this.logger, context.transport).catch(() => {});
-        await context.oauthSession?.close().catch(() => {});
+        await this.closeContext(context);
       } finally {
         this.clients.delete(name);
       }
+    }
+  }
+
+  private async closeContext(context: ClientContext): Promise<void> {
+    const propagateReplayCloseErrors = context.transport instanceof ReplayTransport;
+    let closeError: unknown;
+
+    try {
+      await context.client.close();
+    } catch (error) {
+      if (propagateReplayCloseErrors) {
+        closeError ??= error;
+      }
+    }
+
+    try {
+      await closeTransportAndWait(this.logger, context.transport, {
+        throwOnCloseError: propagateReplayCloseErrors,
+      });
+    } catch (error) {
+      if (propagateReplayCloseErrors) {
+        closeError ??= error;
+      }
+    }
+
+    await context.oauthSession?.close().catch(() => {});
+
+    if (closeError) {
+      throw closeError;
     }
   }
 
