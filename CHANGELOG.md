@@ -15,6 +15,10 @@
 - Reconcile keep-alive daemon metadata with the responding process and serialize daemon startup across parallel clients, preventing duplicate orphaned daemons. (Issue #191, thanks @dtmsyi)
 - Keep daemon-managed stdio servers warm across repeated `mcporter list` requests instead of treating non-interactive tool listing as a throwaway process. (Issue #188, thanks @robertoronderosjr)
 
+### Tooling / Dependencies
+
+- Refresh development dependencies and satisfy the stricter `oxlint` check.
+
 ## [0.11.3] - 2026-05-21
 
 - Fall back to `~/.mcporter/mcporter.json[c]` when `XDG_CONFIG_HOME` points at an empty mcporter config directory, preventing embedders from accidentally hiding the user server registry. (Issue #184, thanks @ChrisBot2026)

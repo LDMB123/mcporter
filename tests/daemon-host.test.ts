@@ -147,12 +147,6 @@ describeUnixSocket('isDaemonResponding', () => {
     }
   });
 
-  function statusServer(result: Record<string, unknown>): net.Server {
-    return net.createServer((socket) => {
-      socket.on('data', () => socket.end(JSON.stringify({ id: '1', ok: true, result })));
-    });
-  }
-
   it('returns true when the socket answers status with a matching socket and live pid', async () => {
     const p = socketPath();
     await listen(statusServer({ pid: process.pid, socketPath: p }), p);
@@ -243,4 +237,10 @@ function createManagedServers(): Map<string, ServerDefinition> {
       },
     ],
   ]);
+}
+
+function statusServer(result: Record<string, unknown>): net.Server {
+  return net.createServer((socket) => {
+    socket.on('data', () => socket.end(JSON.stringify({ id: '1', ok: true, result })));
+  });
 }
