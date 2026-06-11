@@ -344,6 +344,8 @@ describe('mcporter config CLI', () => {
   });
 
   it('suggests close matches when get cannot auto-correct', async () => {
+    await fs.mkdir(path.dirname(configPath), { recursive: true });
+    await fs.writeFile(configPath, JSON.stringify({ mcpServers: {}, imports: [] }), 'utf8');
     await handleConfigCli(buildOptions({ configPath }), ['add', 'shadcn', 'https://shadcn.io/api/mcp']);
     const logs: string[] = [];
     const spy = vi.spyOn(console, 'log').mockImplementation(captureLog(logs));
