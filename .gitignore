@@ -25,3 +25,8 @@ coverage
 build
 out
 tmp
+
+# Claude Code local machine state
+CLAUDE.local.md
+.mcp.local.json
+.mcp.*.local.json

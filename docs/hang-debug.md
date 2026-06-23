@@ -83,6 +83,7 @@ child process, which mcporter will now terminate during shutdown.
   - [#780 onerror listeners not removed after client close (stdio)](https://github.com/modelcontextprotocol/typescript-sdk/issues/780)
   - [#1049 stdio client crashes when spawned server exits unexpectedly](https://github.com/modelcontextprotocol/typescript-sdk/issues/1049)
 
-We keep a local checkout of the SDK under `~/Projects/typescript-sdk/` so we can
-diff against upstream and craft repros/patches quickly. Any mcporter-specific
-workarounds live in `src/sdk-patches.ts` until the upstream fixes land.
+Keep any temporary upstream SDK checkout under `~/Developer/Scratch/typescript-sdk/`
+or another ignored scratch path so it is not mistaken for an LDMB123 repo root.
+Any mcporter-specific workarounds live in `src/sdk-patches.ts` until the
+upstream fixes land.
