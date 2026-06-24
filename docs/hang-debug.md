@@ -34,10 +34,11 @@ culprit is a child MCP server process that keeps the stdio transport alive.
 ```bash
 tmux new-session -d -s mcphang \
   'cd /path/to/project && \
+   MCPORTER_REPO=/path/to/mcporter && \
    MCPORTER_DEBUG_HANG=1 \
    CHROME_DEVTOOLS_MCP_BROWSER_URL=http://127.0.0.1:9222 \
-   pnpm --dir "$HOME/projects/mcporter" exec tsx \
-   "$HOME/projects/mcporter/src/cli.ts" call \
+   pnpm --dir "$MCPORTER_REPO" exec tsx \
+   "$MCPORTER_REPO/src/cli.ts" call \
    --config "$PWD/config/mcporter.json" \
    --root "$PWD" \
    chrome-devtools --tool list_pages'
@@ -83,6 +84,7 @@ child process, which mcporter will now terminate during shutdown.
   - [#780 onerror listeners not removed after client close (stdio)](https://github.com/modelcontextprotocol/typescript-sdk/issues/780)
   - [#1049 stdio client crashes when spawned server exits unexpectedly](https://github.com/modelcontextprotocol/typescript-sdk/issues/1049)
 
-We keep a local checkout of the SDK under `~/Projects/typescript-sdk/` so we can
-diff against upstream and craft repros/patches quickly. Any mcporter-specific
-workarounds live in `src/sdk-patches.ts` until the upstream fixes land.
+Keep any temporary upstream SDK checkout under `~/Developer/Scratch/typescript-sdk/`
+or another ignored scratch path so it is not mistaken for a canonical repo root.
+Any mcporter-specific workarounds live in `src/sdk-patches.ts` until the
+upstream fixes land.

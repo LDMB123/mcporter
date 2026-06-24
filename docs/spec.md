@@ -8,7 +8,8 @@ summary: 'Plan for the mcporter package replacing the Sweetistics pnpm MCP helpe
 
 ## Goals
 
-- Provide a TypeScript runtime + CLI that exposes all MCP servers defined in `~/Projects/sweetistics/config/mcporter.json`.
+- Provide a TypeScript runtime + CLI that exposes all MCP servers defined in a
+  repo-local or caller-provided `config/mcporter.json`.
 - Preserve current one-shot `pnpm mcporter:call` ergonomics while enabling reusable connections for Bun/Node agents.
 - Keep feature parity with the Python helper (env interpolation, stdio wrapping, OAuth caching) and extend test coverage.
 

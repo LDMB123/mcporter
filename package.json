@@ -51,7 +51,7 @@
     "lint:oxlint": "oxlint --type-aware --tsconfig tsconfig.json --report-unused-disable-directives --deny-warnings --max-warnings=0 --allow eslint/no-underscore-dangle",
     "typecheck": "tsgo --project tsconfig.json --noEmit",
     "test": "cross-env MCPORTER_TEST_REPORTER=quiet pnpm test:verbose",
-    "test:quiet": "cross-env MCPORTER_TEST_REPORTER=quiet pnpm test:verbose",
+    "test:quiet": "pnpm test",
     "test:verbose": "pnpm build && node scripts/test-runner.js",
     "test:live": "MCP_LIVE_TESTS=1 vitest run tests/live",
     "clean": "rimraf dist",
