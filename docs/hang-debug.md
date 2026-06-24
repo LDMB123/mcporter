@@ -36,8 +36,8 @@ tmux new-session -d -s mcphang \
   'cd /path/to/project && \
    MCPORTER_DEBUG_HANG=1 \
    CHROME_DEVTOOLS_MCP_BROWSER_URL=http://127.0.0.1:9222 \
-   pnpm --dir "$HOME/projects/mcporter" exec tsx \
-   "$HOME/projects/mcporter/src/cli.ts" call \
+   pnpm --dir "$HOME/Developer/GitHub/LDMB123/mcporter" exec tsx \
+   "$HOME/Developer/GitHub/LDMB123/mcporter/src/cli.ts" call \
    --config "$PWD/config/mcporter.json" \
    --root "$PWD" \
    chrome-devtools --tool list_pages'
