@@ -36,7 +36,7 @@ should contain only `@AGENTS.md`.
 - Bun binary build: `./runner pnpm build:bun`
 - Release/prepublish gate: `./runner pnpm run prepublishOnly`
 - CLI smoke helpers: `./runner pnpm mcporter:list` and
-  `./runner pnpm mcporter:call`
+  `./runner pnpm mcporter:call -- --help`
 
 ## Tests And Live Checks
 

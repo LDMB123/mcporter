@@ -15,8 +15,8 @@ npx mcporter generate-cli linear --bundle dist/linear.js
 npx mcporter emit-ts linear --mode client --out src/linear-client.ts
 ```
 
-Human progress and prompts go to stderr. `--json` writes machine-readable
-envelopes to stdout for scripts.
+Human progress and prompts go to stderr. Use command-specific machine output
+flags for scripts, such as `mcporter call --output json`.
 
 ## What It Does
 
