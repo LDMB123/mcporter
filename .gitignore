@@ -28,5 +28,6 @@ tmp
 
 # Claude Code local machine state
 CLAUDE.local.md
+.claude/settings.local.json
 .mcp.local.json
 .mcp.*.local.json
