@@ -2,7 +2,10 @@
 
 ## [0.12.1] - Unreleased
 
-- Nothing yet.
+### OAuth
+
+- Treat numeric-string HTTP status codes on SDK error metadata as auth/http
+  signals, while leaving errno-style string codes classified by message.
 
 ## [0.12.0] - 2026-06-10
 

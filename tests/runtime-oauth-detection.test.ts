@@ -94,4 +94,9 @@ describe('isUnauthorizedError helper', () => {
     const err = Object.assign(new Error('Error POSTing to endpoint: {}'), { code: 401 });
     expect(isUnauthorizedError(err)).toBe(true);
   });
+
+  it('matches errors with string code=401 too', () => {
+    const err = Object.assign(new Error('Error POSTing to endpoint: {}'), { code: '401' });
+    expect(isUnauthorizedError(err)).toBe(true);
+  });
 });

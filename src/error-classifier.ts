@@ -89,6 +89,12 @@ function extractErrorCode(error: unknown): number | undefined {
     if (typeof code === 'number' && Number.isFinite(code) && code >= 100 && code < 600) {
       return code;
     }
+    if (typeof code === 'string') {
+      const parsed = Number.parseInt(code, 10);
+      if (Number.isFinite(parsed) && parsed >= 100 && parsed < 600) {
+        return parsed;
+      }
+    }
   }
   return undefined;
 }

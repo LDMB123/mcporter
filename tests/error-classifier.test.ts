@@ -73,6 +73,20 @@ describe('analyzeConnectionError', () => {
       expect(issue.statusCode).toBe(500);
     });
 
+    it('accepts numeric-string HTTP codes from SDK errors', () => {
+      const err = Object.assign(new Error('Forbidden'), { code: '403' });
+      const issue = analyzeConnectionError(err);
+      expect(issue.kind).toBe('auth');
+      expect(issue.statusCode).toBe(403);
+    });
+
+    it('ignores non-http string codes like errno values', () => {
+      const err = Object.assign(new Error('spawn enoent'), { code: 'ENOENT' });
+      const issue = analyzeConnectionError(err);
+      expect(issue.kind).toBe('offline');
+      expect(issue.statusCode).toBeUndefined();
+    });
+
     it('falls back to message parsing when code is absent', () => {
       const issue = analyzeConnectionError(new Error('network timeout'));
       expect(issue.kind).toBe('offline');
