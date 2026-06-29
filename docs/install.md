@@ -37,11 +37,11 @@ mcporter targets Node 24+ and works under Bun. The package exposes both an impor
 brew install steipete/tap/mcporter
 ```
 
-The tap publishes alongside npm. If you previously installed from an older tap, run `brew update` before reinstalling so Homebrew picks up the new formula path.
+The source repository is `openclaw/mcporter`, but the Homebrew formula is still published from `steipete/tap` until a tap migration is explicitly approved. If you previously installed from an older tap, run `brew update` before reinstalling so Homebrew picks up the new formula path.
 
 ## Standalone binary
 
-Each release also ships a Bun-compiled standalone binary you can drop on `$PATH` without a Node toolchain. Grab the asset for your OS/arch from the [GitHub releases page](https://github.com/steipete/mcporter/releases) and `chmod +x` it. The compiled CLI behaves the same as the Node build but boots noticeably faster and bundles its dependencies.
+Each release also ships a Bun-compiled standalone binary you can drop on `$PATH` without a Node toolchain. Grab the asset for your OS/arch from the [GitHub releases page](https://github.com/openclaw/mcporter/releases) and `chmod +x` it. The compiled CLI behaves the same as the Node build but boots noticeably faster and bundles its dependencies.
 
 ## Verify
 
