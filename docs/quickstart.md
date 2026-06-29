@@ -10,7 +10,7 @@ This walkthrough assumes you already have an MCP server configured in Cursor, Cl
 {
   "$schema": "https://raw.githubusercontent.com/openclaw/mcporter/main/mcporter.schema.json",
   "mcpServers": {
-    "context7": {
+    "docs": {
       "description": "Public documentation lookup MCP.",
       "baseUrl": "https://mcp.context7.com/mcp"
     }
@@ -31,7 +31,7 @@ You get one row per server with auth status, transport type, and tool count. Add
 ## 2. Inspect a single server
 
 ```bash
-npx mcporter list linear
+npx mcporter list docs
 ```
 
 Single-server output reads like a TypeScript header file: dimmed `/** … */` doc comments above each `function name(...)` signature, with optional parameters summarised so the screen stays scannable. Add flags to drill in:
@@ -48,13 +48,13 @@ Single-server output reads like a TypeScript header file: dimmed `/** … */` do
 
 ```bash
 # Colon-delimited flags (shell-friendly).
-npx mcporter call linear.create_comment issueId:ENG-123 body:'Looks good!'
+npx mcporter call docs.resolve-library-id query:'React hooks docs' libraryName:react
 
 # Function-call style copy/pasted from `mcporter list`.
-npx mcporter call 'linear.create_comment(issueId: "ENG-123", body: "Looks good!")'
+npx mcporter call 'docs.resolve-library-id(query: "React hooks docs", libraryName: "react")'
 
 # Anything after `--` is a literal positional value.
-npx mcporter call docs.fetch -- --raw-string-with-leading-dashes
+npx mcporter call docs.query-docs -- /reactjs/react.dev --raw-string-with-leading-dashes
 ```
 
 Pick the output format with `--output text|markdown|json|raw`. Use `--save-images <dir>` to persist binary content blocks. See [CLI reference](cli-reference.md) for the full flag list.
@@ -73,8 +73,8 @@ Output formatting is shared with `mcporter call` (`--output`, `--json`, `--raw`)
 When you want to share a tool with someone who shouldn't have to learn `mcporter call`:
 
 ```bash
-npx mcporter generate-cli linear --bundle dist/linear.js
-node dist/linear.js create-comment --issue-id ENG-123 --body 'Looks good!'
+npx mcporter generate-cli docs --bundle dist/docs.js
+node dist/docs.js resolve-library-id --query 'React hooks docs' --library-name react
 ```
 
 Add `--compile <path>` for a Bun-compiled binary, or `--include-tools a,b,c` to ship a subset. Full details in [CLI generator](cli-generator.md).
@@ -82,7 +82,7 @@ Add `--compile <path>` for a Bun-compiled binary, or `--include-tools a,b,c` to 
 ## 6. Emit typed clients for agents
 
 ```bash
-npx mcporter emit-ts linear --mode client --out src/linear-client.ts
+npx mcporter emit-ts docs --mode client --out src/docs-client.ts
 ```
 
 You get a `.d.ts` interface and a `createServerProxy()`-backed factory. Calls return `CallResult` objects with `.text()`, `.markdown()`, `.json()`, `.images()`, `.content()` helpers — see [Tool calling](tool-calling.md) for the proxy API and [emit-ts](emit-ts.md) for the generator.
