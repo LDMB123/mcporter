@@ -4,7 +4,21 @@ summary: 'Five-minute walk through listing MCP servers, calling a tool, and emit
 
 # Quickstart
 
-This walkthrough assumes you already have an MCP server configured in Cursor, Claude Code/Desktop, Codex, Windsurf, OpenCode, or VS Code. If not, copy [`config/mcporter.json`](https://github.com/openclaw/mcporter/blob/main/config/mcporter.json) into `~/.mcporter/mcporter.json` and edit it — see [Configuration](config.md) for the full schema.
+This walkthrough assumes you already have an MCP server configured in Cursor, Claude Code/Desktop, Codex, Windsurf, OpenCode, or VS Code. If not, create a small `~/.mcporter/mcporter.json` with only the server you want to try:
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/openclaw/mcporter/main/mcporter.schema.json",
+  "mcpServers": {
+    "context7": {
+      "description": "Public documentation lookup MCP.",
+      "baseUrl": "https://mcp.context7.com/mcp"
+    }
+  }
+}
+```
+
+Do not copy the repo's `config/mcporter.json` wholesale; it is the project runtime config and may include maintainer-local stdio commands, paths, or env settings. Copy only sanitized entries you understand, then see [Configuration](config.md) for the full schema.
 
 ## 1. List the servers mcporter sees
 
