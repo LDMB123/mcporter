@@ -37,7 +37,7 @@ const sections = [
       'supabase-auth-issue.md',
     ],
   ],
-  ['Reference', ['spec.md', 'migration.md', 'pnpm-mcp-migration.md']],
+  ['Reference', ['spec.md', 'migration.md']],
 ];
 
 // Skip these from page generation (internal notes etc.). Pages excluded here are

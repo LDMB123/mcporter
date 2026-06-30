@@ -48,6 +48,9 @@ should contain only `@AGENTS.md`.
 ## Docs And Release
 
 - Keep README/docs in sync with behavior changes.
+- Keep portfolio-level routing and ownership facts in
+  `home-agent-config/.openclaw/wiki/main/entities/mcporter-repo.md`; keep this
+  repo focused on product, CLI, release, and test documentation.
 - Use `docs/tmux.md`, `docs/hang-debug.md`, and `docs/manual-testing.md` for
   manual or hang repros.
 - Use `docs/RELEASE.md` for release work; do not publish, tag, or deploy
