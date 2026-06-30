@@ -34,21 +34,24 @@ flags for scripts, such as `mcporter call --output json`.
 
 ## Docs
 
-- [Docs home](https://github.com/openclaw/mcporter/blob/main/docs/index.md)
-- [Install](https://github.com/openclaw/mcporter/blob/main/docs/install.md)
-- [Quickstart](https://github.com/openclaw/mcporter/blob/main/docs/quickstart.md)
-- [Configuration](https://github.com/openclaw/mcporter/blob/main/docs/config.md)
-- [CLI reference](https://github.com/openclaw/mcporter/blob/main/docs/cli-reference.md)
-- [Ad-hoc connections](https://github.com/openclaw/mcporter/blob/main/docs/adhoc.md)
-- [Tool calling](https://github.com/openclaw/mcporter/blob/main/docs/tool-calling.md)
-- [Call syntax](https://github.com/openclaw/mcporter/blob/main/docs/call-syntax.md)
-- [Generated CLIs](https://github.com/openclaw/mcporter/blob/main/docs/cli-generator.md)
-- [Typed clients](https://github.com/openclaw/mcporter/blob/main/docs/emit-ts.md)
-- [Agent skills](https://github.com/openclaw/mcporter/blob/main/docs/agent-skills.md)
-- [Daemon](https://github.com/openclaw/mcporter/blob/main/docs/daemon.md)
-- [Record/replay](https://github.com/openclaw/mcporter/blob/main/docs/record-replay.md)
-- [Manual testing](https://github.com/openclaw/mcporter/blob/main/docs/manual-testing.md)
-- [Release](https://github.com/openclaw/mcporter/blob/main/docs/RELEASE.md)
+- [Docs home](docs/index.md)
+- [Install](docs/install.md)
+- [Quickstart](docs/quickstart.md)
+- [Configuration](docs/config.md)
+- [CLI reference](docs/cli-reference.md)
+- [Ad-hoc connections](docs/adhoc.md)
+- [Tool calling](docs/tool-calling.md)
+- [Call syntax](docs/call-syntax.md)
+- [Generated CLIs](docs/cli-generator.md)
+- [Typed clients](docs/emit-ts.md)
+- [Agent skills](docs/agent-skills.md)
+- [Daemon](docs/daemon.md)
+- [Record/replay](docs/record-replay.md)
+- [Manual testing](docs/manual-testing.md)
+- [Release](docs/RELEASE.md)
+
+Portfolio routing and ownership notes live in the LDMB123 tracked wiki:
+`home-agent-config/.openclaw/wiki/main/entities/mcporter-repo.md`.
 
 ## Developer Workflow
 

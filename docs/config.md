@@ -30,7 +30,7 @@ Global Options:
   -h, --help                     Display help for mcporter config
 
 Run `mcporter config help add` to see transport flags, ad-hoc persistence tips, and schema docs.
-See https://github.com/openclaw/mcporter/blob/main/docs/config.md for config anatomy, import precedence, and troubleshooting guidance.
+The rest of this guide covers config anatomy, import precedence, and troubleshooting guidance.
 ```
 
 # Configuration Guide
