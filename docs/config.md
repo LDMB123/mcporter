@@ -4,35 +4,6 @@ read_when:
   - 'Working on config resolution, imports, or mcporter config subcommands'
 ---
 
-# CLI Help Menu Snapshot
-
-```
-mcporter config
-Usage: mcporter config [options] <command>
-
-Manage configured MCP servers, imports, and ad-hoc discoveries.
-
-Commands:
-  list [options] [filter]        Show merged servers (local + imports + ad-hoc cache)
-  get <name>                     Inspect a single server with resolved source info
-  add [options] <name> [target]  Persist a server definition (URL or stdio command)
-  remove [options] <name>        Delete a local entry or copy from an import
-  import <kind> [options]        Copy entries from cursor/claude/codex/etc. into config
-  login <name|url>               Complete OAuth/auth flows for a server
-  logout <name>                  Clear cached credentials for a server
-  doctor [options]               Validate config files and report common mistakes
-  help [command]                 Show CLI or subcommand help
-
-Global Options:
-  --config <path>                Use an explicit config file (default: config/mcporter.json)
-  --root <dir>                   Set project root for import discovery (default: cwd)
-  --json                         Emit machine-readable output when supported
-  -h, --help                     Display help for mcporter config
-
-Run `mcporter config help add` to see transport flags, ad-hoc persistence tips, and schema docs.
-The rest of this guide covers config anatomy, import precedence, and troubleshooting guidance.
-```
-
 # Configuration Guide
 
 ## Overview
@@ -289,10 +260,3 @@ For keep-alive stdio servers, refresh happens before process start. If that proc
 - When env placeholders are missing, commands fail fast with the exact variable name. Add the variable or wrap it in `${VAR:-fallback}` to provide defaults.
 - Use `mcporter config get <name> --show-source` (planned flag) to confirm whether a server came from an import. If a teammate’s Cursor config keeps overriding your local entry, reorder the `imports` array to move Cursor later or set it to `[]` to disable imports entirely.
 - `docs/adhoc.md` covers deeper debugging, including tmux workflows and OAuth promotion logs.
-
-## Outstanding Coverage Items
-
-- Describe how `--persist` writes through the same import merge pipeline (especially once `mcporter config add --copy-from` ships) so users know exactly which file changes.
-- Call out that `--allow-http` remains required for cleartext URLs even in config mutations, and reiterate that `--env KEY=VAL` merges with on-disk env blocks rather than replacing them entirely.
-- Clarify and illustrate the automatic OAuth promotion path for ad-hoc HTTP entries in both this doc and future `mcporter config login` help output.
-- Flesh out `mcporter config doctor` once the validator is implemented so we can show real output samples and suggested fixes.

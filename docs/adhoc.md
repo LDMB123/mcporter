@@ -6,11 +6,11 @@ read_when:
 
 # Ad-hoc MCP Servers
 
-mcporter is gaining support for "just try it" workflows where you point the CLI at a raw MCP endpoint without first editing a config file. This doc tracks the behavior and heuristics we use to make that experience smooth while keeping the runtime predictable.
+mcporter supports "just try it" workflows where you point the CLI at a raw MCP endpoint without first editing a config file. This doc tracks the behavior and heuristics we use to make that experience smooth while keeping the runtime predictable.
 
 ## Entry Points
 
-Two new flag sets let you describe a server on the command line:
+These flag sets describe a server on the command line:
 
 - `mcporter list --http-url https://mcp.linear.app/mcp [--name linear]`
 - `mcporter call --stdio "bun run ./server.ts" --name local-tools`
@@ -71,8 +71,3 @@ The CLI still avoids surprise prompts during `mcporter list`; the upgrade happen
 - Non-HTTPS endpoints require `--allow-http`.
 - For stdio commands we print a confirmation snippet the first time we see a new command unless `--yes` is present.
 - Missing transports or malformed combinations throw descriptive errors, pointing to `docs/adhoc.md` for guidance.
-
-## Follow-ups
-
-- Extend `mcporter config add` to leverage the same helper, making it the one-stop path from exploration to permanence.
-- Consider caching inference results so repeated URL calls automatically rehydrate the previous settings (env/cwd).

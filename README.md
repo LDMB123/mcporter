@@ -40,6 +40,7 @@ flags for scripts, such as `mcporter call --output json`.
 - [Configuration](docs/config.md)
 - [CLI reference](docs/cli-reference.md)
 - [Ad-hoc connections](docs/adhoc.md)
+- [Known issues](docs/known-issues.md)
 - [Tool calling](docs/tool-calling.md)
 - [Call syntax](docs/call-syntax.md)
 - [Generated CLIs](docs/cli-generator.md)

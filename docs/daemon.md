@@ -1,19 +1,21 @@
 ---
-summary: 'Design plan for the persistent MCP daemon used to keep long-lived servers (e.g., chrome-devtools) alive.'
+summary: 'Reference for the persistent MCP daemon used to keep long-lived servers (e.g., chrome-devtools) alive.'
 read_when:
   - 'Implementing daemon/keep-alive behavior or maintaining its CLI commands.'
 ---
 
-# MCPorter Daemon Plan
+# MCPorter Daemon
 
-## Goals
+The daemon keeps selected stateful MCP servers warm across separate CLI invocations. It is invisible for ordinary `mcporter call` and `mcporter list` flows unless a server opts into keep-alive behavior.
 
-- **Invisible keep-alive:** `mcporter call` should transparently start (and reuse) a per-login daemon whenever a configured server requires persistence (e.g., `chrome-devtools` or CloudBase device authentication). No extra flags for agents.
-- **Shared state:** Multiple CLI invocations/agents within the same user session must reuse the same warm transport so STDIO servers can hold tabs, cookies, and other stateful context.
+## Behavior
+
+- **Invisible keep-alive:** `mcporter call` transparently starts (and reuses) a per-login daemon whenever a configured server requires persistence (e.g., `chrome-devtools` or CloudBase device authentication). No extra flags for agents.
+- **Shared state:** Multiple CLI invocations/agents within the same user session reuse the same warm transport so STDIO servers can hold tabs, cookies, and other stateful context.
 - **Per-config scope:** The daemon lives under the current user account, keyed by config path (`~/.mcporter/daemon/daemon-<config-hash>.sock` on Unix-like systems, or `$XDG_STATE_HOME/mcporter/daemon/...` when set), and never crosses user boundaries.
 - **Resilience:** If the daemon or a keep-alive server crashes, the next CLI call restarts it automatically.
-- **Explicit shutdown:** Provide `mcporter daemon stop` to tear everything down (plus `status` for debugging).
-- **Configurable participation:** Only servers marked keep-alive participate; others keep current ephemeral behavior. Support opt-in/out via config/env plus a default allowlist.
+- **Explicit shutdown:** `mcporter daemon stop` tears everything down, and `mcporter daemon status` reports runtime state for debugging.
+- **Configurable participation:** Only servers marked keep-alive participate; others keep ephemeral behavior. Config/env controls and the default allowlist govern opt-in/out.
 
 ## Architecture
 
@@ -32,9 +34,9 @@ read_when:
   - Non keep-alive servers continue using the local runtime in the current process.
 
 - **Keep-alive detection:**
-  - Extend `ServerDefinition` with `lifecycle?: "ephemeral" | { mode: "keep-alive", idleTimeoutMs?: number }`.
-  - Provide a config-level `defaultKeepAlive` array or `MCPORTER_KEEPALIVE` env var for quick overrides.
-  - Ship a hardcoded allowlist (`chrome-devtools`, `mobile-mcp`, `playwright`, `cloudbase`) so existing configs benefit immediately; users can opt out per server.
+  - Server definitions can set `lifecycle?: "ephemeral" | { mode: "keep-alive", idleTimeoutMs?: number }`.
+  - Config-level defaults and `MCPORTER_KEEPALIVE` provide quick overrides.
+  - The built-in allowlist (`chrome-devtools`, `mobile-mcp`, `playwright`, `cloudbase`) lets common stateful servers benefit immediately; users can opt out per server.
 
 ## CLI Surface
 
@@ -63,25 +65,6 @@ If each agent needs independent MCP state, give each agent either:
 
 Non-keep-alive servers remain process-local and do not use the daemon.
 
-## Testing Plan
-
-1. **Unit tests**
-   - Config parsing for the new `lifecycle` shape and env overrides.
-   - Daemon controller: socket path resolution, metadata persistence, auto-restart logic.
-2. **Integration tests (Vitest)**
-   - Spin up a fake STDIO MCP server (script under `tests/fixtures/daemon-server.ts`) that increments a counter so we can assert the transport stays alive across multiple CLI invocations.
-   - Verify `mcporter call` auto-starts the daemon, reuses the server, and `mcporter daemon stop` shuts it down.
-   - Simulate daemon crash by killing the background process and ensure the next call restarts it automatically.
-
-## Implementation Steps
-
-1. **Config/schema changes:** Update `src/config.ts` plus fixtures to accept `lifecycle`. Provide helpers like `requiresKeepAlive(definition)`.
-2. **Daemon service:** New module (e.g., `src/daemon/host.ts`) that runs the socket server, wraps `McpRuntime`, and exposes RPC handlers.
-3. **CLI wiring:** Add `daemon` subcommand + option parsing; create a client helper `ensureDaemon()` used by `call/list` paths when a keep-alive server is detected.
-4. **Transport proxying:** Implement request/response translation so CLI commands can await daemon responses as if they were local.
-5. **Auto-detection + env overrides:** Hook into command selectors to decide when to proxy.
-6. **Tests + docs:** Add Vitest coverage, update README/cli reference snippets, and keep this doc synced with actual behavior.
-
 ## Logging & Diagnostics
 
 You can capture the daemon’s stdout/stderr (and per-server call traces) when debugging long-lived STDIO servers:
@@ -104,4 +87,4 @@ Logs include timestamped entries such as:
 
 Tailing the file (`tail -f ~/.mcporter/daemon/daemon-*.log`, or the matching XDG state path) surfaces crashes or repeated failures without needing to re-run the daemon in the foreground.
 
-Once these steps land, agents can freely use persistent MCP servers without juggling multiple Chrome launches, while still retaining an explicit shutdown path.
+Agents can use persistent MCP servers without juggling multiple Chrome launches, while still retaining an explicit shutdown path.
