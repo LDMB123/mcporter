@@ -67,4 +67,5 @@ A _porter_ carries luggage between trains. mcporter does the same for MCP server
 - [Configuration](config.md) — `mcporter.json`, imports, env interpolation, OAuth.
 - [CLI reference](cli-reference.md) — every subcommand and flag.
 - [Ad-hoc connections](adhoc.md) — point at any MCP endpoint without editing config.
+- [Known issues](known-issues.md) — hosted OAuth quirks, provider limitations, and upstream gaps.
 - [Agent skills](agent-skills.md) — exposing servers to agents the right way.

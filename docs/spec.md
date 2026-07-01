@@ -1,41 +1,29 @@
 ---
-summary: 'Plan for the mcporter package replacing the Sweetistics pnpm MCP helpers.'
+summary: 'Architecture overview for the mcporter runtime, CLI, generated-CLI toolkit, and typed-client layer.'
 ---
 
-# mcporter Roadmap
+# mcporter Architecture
 
 > Inspired in part by Anthropic’s guidance on MCP code execution agents: https://www.anthropic.com/engineering/code-execution-with-mcp
 
-## Goals
+mcporter is a TypeScript runtime and CLI for calling Model Context Protocol servers from terminals, scripts, generated CLIs, and agents. For day-to-day command usage, see [CLI reference](./cli-reference.md); for install and first-run flows, see [Quickstart](./quickstart.md).
 
-- Provide a TypeScript runtime + CLI that exposes all MCP servers defined in a
-  repo-local or caller-provided `config/mcporter.json`.
-- Preserve current one-shot `pnpm mcporter:call` ergonomics while enabling reusable connections for Bun/Node agents.
-- Keep feature parity with the Python helper (env interpolation, stdio wrapping, OAuth caching) and extend test coverage.
+## Runtime Surface
 
-## Deliverables
-
-- `packages/mcporter` (standalone npm package) exporting:
-  - `createRuntime()` for shared connections (list/call tools, resolve resources).
-  - `callOnce()` convenience matching today’s single-call flow.
-  - Typed utilities for env/header resolution and stdio command execution.
-- CLI entry point (`npx mcporter list|call`) built on the same runtime with configurable log levels (`--log-level` flag, `MCPORTER_LOG_LEVEL` env) defaulting to `warn`. Single-server listings must render as TypeScript-style headers: dimmed `/** ... */` doc blocks followed by `function name(...)` signatures, inferred return annotations when schemas expose a `title`, inline enum/format hints, and an optional-parameter summary (`// optional (N): a, b, ...`). Optional fields are hidden by default (unless there are ≤2 of them and <4 required parameters) and the CLI should tell users to run `--all-parameters` whenever anything is suppressed. The CLI should also infer the verb when users omit it: bare server names run `list <server>` (with the same typo-friendly heuristic used by `mcporter list`), while dotted tokens such as `linear.list_issues` dispatch to `call` automatically. Anonymous HTTP MCP servers (e.g., shadcn) must be auto-detected: if an ad-hoc URL returns MCP-shaped JSON even with a non-200 status, mcporter treats it as authenticated instead of launching the OAuth flow. Likewise, `call` must recognise HTTP selectors that inline the tool name (e.g., `https://www.shadcn.io/api/mcp.getComponent(...)`), strip the `.tool` suffix to derive the base server, parse any function-call arguments, and reuse an existing definition when the base URL matches a configured server. Selectors may omit the protocol entirely—we assume HTTPS when no scheme is present and treat hosts that only differ by a leading `www.` as identical for reuse purposes. See [docs/cli-reference.md](./cli-reference.md) for day-to-day usage/flag details.
-- CLI generator (`npx mcporter generate-cli`) that emits standalone CLIs (plain TypeScript or bundled JS) with embedded schemas and Commander-based subcommands, targeting Node or Bun.
-- CLI generator (`npx mcporter generate-cli`) that emits standalone CLIs (plain TypeScript or bundled JS) with embedded schemas and Commander-based subcommands, targeting Node or Bun. It must accept server references by name (positional), JSON, HTTP URL (with optional `.tool` suffix / missing scheme), or inline stdio commands (split into `command` + `args` so invocations like `--command "npx -y chrome-devtools-mcp@latest"` or positional equivalents work without a config entry) just like the main CLI.
-- Test harness using the Sweetistics MCP fixtures to validate every configured server definition.
-- Documentation: README, usage examples, migration guide for replacing `pnpm mcp:*`.
+- `createRuntime()` hosts shared connections, lists tools, calls tools, and resolves resources.
+- `callOnce()` keeps one-shot scripts simple when connection reuse is unnecessary.
+- `createServerProxy()` maps tool names to method-style calls, fills JSON-schema defaults, validates required arguments, and returns `CallResult` helpers for `.text()`, `.markdown()`, `.json()`, `.images()`, and `.content()`.
+- The CLI (`npx mcporter list|call|auth|resource|serve|emit-ts|generate-cli`) uses the same runtime as the library API.
 
 ## Architecture Notes
 
 - Load MCP definitions from JSON (support relative paths + HTTPS).
 - Reuse `@modelcontextprotocol/sdk` transports; invoke stdio servers directly (e.g., call `npx` with env overrides) without an extra wrapper script.
 - Automatically detect OAuth requirements for ad-hoc HTTP servers by retrying failed handshakes and promoting the definition to `auth: "oauth"` when a 401/403 is encountered, then launching the browser flow immediately.
-- Mirror Python helper behavior:
-  - `${VAR}`, `${VAR:-default}`, `$env:VAR` interpolation.
-- Optional OAuth token cache directory handling (defaulting to `~/.mcporter/<server>` when none is provided, or XDG paths when configured).
-  - Tool signature + schema fetching for `list`.
+- Mirror Python helper interpolation behavior for `${VAR}`, `${VAR:-default}`, and `$env:VAR`.
+- Support OAuth token cache directory handling through `~/.mcporter`, XDG paths, and per-server overrides.
+- Fetch tool signatures and schemas for `list`, generated CLIs, and typed clients.
 - Provide lazy connection pooling per server to minimize startup cost.
-- Expose a lightweight server proxy (`createServerProxy`) that maps camelCase method accesses to tool names, fills JSON-schema defaults, validates required arguments, and returns a helper (`CallResult`) for extracting text/markdown/JSON without re-parsing the content envelope.
 - Document Cursor-compatible `config/mcporter.json` structure; support env-sourced headers and stdio commands while keeping inline overrides available for scripts.
 
 ## Schema-Aware Proxy Strategy
@@ -55,9 +43,10 @@ summary: 'Plan for the mcporter package replacing the Sweetistics pnpm MCP helpe
 
 - `generate-cli` should accept inline JSON, file paths, inline stdio commands (either via `--command` or as the first positional argument), or existing config names and produce a ready-to-run CLI that maps tools to Commander subcommands.
 - Embed schemas (via `listTools { includeSchema: true }`) directly in the generated source so repeat executions avoid additional metadata calls.
-- Support optional bundling through esbuild, producing Node-friendly `.cjs` files or Bun-ready `.js` binaries with executable shebangs.
+- Support optional bundling through Rolldown by default, or Bun's native bundler
+  when targeting Bun, with executable shebangs on bundled artifacts.
 - Surface flags for output path, runtime target (`node` or `bun`), bundle destination, and per-call timeout (default 30s).
-- Add integration tests asserting the generated CLI can list tools, execute with positional/flag arguments, and hydrate cache files without additional list calls.
+- See [CLI generator](./cli-generator.md) for current flags, bundling behavior, artifact metadata, and regeneration flows.
 
 ## Configuration
 
@@ -65,33 +54,3 @@ summary: 'Plan for the mcporter package replacing the Sweetistics pnpm MCP helpe
 - Optional `imports` array (defaulting to ['cursor', 'claude-code', 'claude-desktop', 'codex', 'windsurf', 'vscode']) controls auto-merging of editor configs; entries earlier in the list win conflicts while local definitions can still override.
 - Provide `configPath` override for scripts/tests; keep inline overrides in examples for completeness but default to file-based configuration.
 - Add fixtures validating HTTP vs. stdio normalization, header/env behavior, and editor config imports (Cursor, Claude Code/Desktop, Codex, Windsurf, VS Code) to ensure priority ordering matches defaults.
-
-## Work Phases
-
-1. **Scaffold Package**
-   - Init pnpm workspace config, tsconfig, lint/test scaffolding, build script.
-2. **Core Runtime**
-   - Port config parsing + env/header logic.
-   - Implement connection cache, tool invocation, resource helpers.
-3. **CLI Surface**
-
-- Implement `list` (with optional schema) and `call` commands.
-- Render tool metadata as pseudo-TypeScript declarations: blue `function` signatures, grey doc comments using `@param` lines, inferred return names, and compact optional summaries that collapse longer lists until users pass `--all-parameters`. The default view must still surface at least five parameters (even if they’re optional) before summarising the remainder.
-- Ensure output parity with existing helper.
-- `call` has to parse both `server.tool` tokens and HTTP selectors like `https://host/path.tool(args)`; in the HTTP case we need to peel off the `.tool` suffix, infer/auto-register the ad-hoc server (respecting `--allow-http`), and hydrate arguments from parentheses or trailing `key=value` pairs.
-- Add `generate-cli` for standalone/bundled CLIs with embedded schema caching.
-- Ensure `generate-cli`, `inspect-cli`, and `emit-ts` share the same server-resolution logic as `list/call`, including HTTP URL matching and scheme-less selectors with `.tool` suffixes.
-
-4. **Testing & Fixtures**
-   - Mock representative MCP servers (stdio + HTTP + OAuth) for integration tests.
-   - Snapshot output for `list` vs. `call`.
-5. **Docs & Migration**
-   - Write README + migration doc.
-   - Update Sweetistics docs to point to the new package.
-
-## Open Questions
-
-- How aggressively should we parallelize list calls? Current helper serializes to avoid load.
-- Should we bundle a minimal REPL for ad-hoc debugging, or keep CLI focused on list/call?
-- Do we expose streaming/async iterator interfaces for tools returning logs?
-- What UX do we provide for completing OAuth browser flows (automated callback server vs. copy/paste codes)?
