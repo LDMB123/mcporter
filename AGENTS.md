@@ -51,6 +51,9 @@ should contain only `@AGENTS.md`.
 - Keep portfolio-level routing and ownership facts in
   `home-agent-config/.openclaw/wiki/main/entities/mcporter-repo.md`; keep this
   repo focused on product, CLI, release, and test documentation.
+- LLM Wiki work routes through
+  `~/Developer/GitHub/LDMB123/home-agent-config/.openclaw/wiki/main/WIKI.md`;
+  do not duplicate wiki schema in this repo.
 - Use `docs/tmux.md`, `docs/hang-debug.md`, and `docs/manual-testing.md` for
   manual or hang repros.
 - Use `docs/RELEASE.md` for release work; do not publish, tag, or deploy
