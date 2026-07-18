@@ -24,7 +24,7 @@ sleep 2
 cat /tmp/list-all.log
 ```
 
-The summary shows which servers are healthy, require auth, or are offline. Choose one of the "healthy" entries (e.g., `shadcn`, `firecrawl`, `obsidian-mcp-tools`) for the manual checks below.
+The summary shows which servers are healthy, require auth, or are offline. Choose a public read-only documentation server such as `context7` for the manual checks below.
 
 ## Test matrix
 
