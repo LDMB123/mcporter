@@ -17,6 +17,9 @@ yarn-error.log*
 
 # Env
 .env
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
 
 # TypeScript build artifacts
 *.tsbuildinfo
