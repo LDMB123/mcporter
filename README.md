@@ -58,7 +58,7 @@ flags for scripts, such as `mcporter call --output json`.
 - [Release](docs/RELEASE.md)
 
 Portfolio routing and ownership notes live in the LDMB123 tracked wiki:
-`~/Developer/GitHub/LDMB123/home-agent-config/.openclaw/wiki/main/knowledge/entities/mcporter-repo.md`.
+`~/Developer/GitHub/LDMB123/llm-wiki/knowledge/entities/mcporter-repo.md`.
 
 ## Developer Workflow
 
