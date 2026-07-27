@@ -24,11 +24,11 @@ read_when:
 
 - We only inspect the tool catalog if the server explicitly replied with “Tool … not found”. Other MCP errors surface untouched.
 - If listing tools itself fails (auth, offline, etc.) we skip both auto-correct and hints.
-- Behaviour is covered by `tests/cli-call.test.ts`.
+- Behaviour is covered by `tests/cli-call-execution.test.ts`.
 
 ## Server Selection Heuristic
 
 - `mcporter list <server>` now applies the same edit-distance heuristic to server names. If you type `vercek`, the CLI auto-corrects to `vercel` (and logs `[mcporter] Auto-corrected server name to vercel (input: vercek).`).
 - When the typo is too large, we keep the original failure but emit a hint: `[mcporter] Did you mean linear?` followed by the usual “Unknown MCP server …” line. This avoids giant stack traces while pointing to the right name.
-- The heuristic considers every configured server (including ad-hoc ones registered via `--http-url/--stdio`). Tests covering this behaviour live in `tests/cli-list.test.ts`.
+- The heuristic considers every configured server (including ad-hoc ones registered via `--http-url/--stdio`). Tests covering this behaviour live in `tests/cli-list-classification.test.ts`.
 - `mcporter auth` shares the same routing logic, so `mcporter auth https://mcp.example.com/mcp` (or even `mcporter auth vercek`) will spin up the temporary definition, auto-correct close names, and launch OAuth without touching the config file.

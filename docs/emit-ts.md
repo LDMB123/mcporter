@@ -86,7 +86,7 @@ returned object’s `close()` becomes a no-op.
 | `--out <path>`       | Required. `.d.ts` target for `types`, `.ts` target for `client`.                           |
 | `--mode types        | client`                                                                                    | Output kind (defaults to `types`). |
 | `--types-out <path>` | Optional override for the `.d.ts` file when `--mode client`. Default: derive from `--out`. |
-| `--include-optional` | Include every parameter (not just the minimum 5 + required).                               |
+| `--include-optional` | Include every parameter, even when more than two optional (or ≥4 required) parameters would otherwise be hidden by default. |
 | `--json`             | Emit a JSON summary describing the emitted file(s) instead of plain-text logs.             |
 
 ## Testing
