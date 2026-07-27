@@ -81,13 +81,13 @@ returned object’s `close()` becomes a no-op.
 
 ## Flags
 
-| Flag                 | Description                                                                                |
-| -------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------- |
-| `--out <path>`       | Required. `.d.ts` target for `types`, `.ts` target for `client`.                           |
-| `--mode types        | client`                                                                                    | Output kind (defaults to `types`). |
-| `--types-out <path>` | Optional override for the `.d.ts` file when `--mode client`. Default: derive from `--out`. |
-| `--include-optional` | Include every parameter (not just the minimum 5 + required).                               |
-| `--json`             | Emit a JSON summary describing the emitted file(s) instead of plain-text logs.             |
+| Flag                   | Description                                                                                                                                                                         |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--out <path>`         | Required. `.d.ts` target for `types`, `.ts` target for `client`.                                                                                                                    |
+| `--mode types\|client` | Output kind (defaults to `types`).                                                                                                                                                  |
+| `--types-out <path>`   | Optional override for the `.d.ts` file when `--mode client`. Default: derive from `--out`.                                                                                          |
+| `--include-optional`   | Include every parameter. By default, tools with more than five total parameters retain every required parameter, then fill any remaining slots up to five with optional parameters. |
+| `--json`               | Emit a JSON summary describing the emitted file(s) instead of plain-text logs.                                                                                                      |
 
 ## Testing
 
