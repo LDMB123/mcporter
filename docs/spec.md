@@ -51,6 +51,6 @@ mcporter is a TypeScript runtime and CLI for calling Model Context Protocol serv
 ## Configuration
 
 - Single file `config/mcporter.json` mirrors Cursor/Claude schema: `mcpServers` map with entries containing `baseUrl` or `command`+`args`, optional `headers`, `env`, `description`, `auth`, `tokenCacheDir`, and convenience `bearerToken`/`bearerTokenEnv` fields.
-- Optional `imports` array (defaulting to ['cursor', 'claude-code', 'claude-desktop', 'codex', 'windsurf', 'vscode']) controls auto-merging of editor configs; entries earlier in the list win conflicts while local definitions can still override.
+- Optional `imports` array (defaulting to ['cursor', 'claude-code', 'claude-desktop', 'codex', 'windsurf', 'opencode', 'vscode']) controls auto-merging of editor configs; entries earlier in the list win conflicts while local definitions can still override.
 - Provide `configPath` override for scripts/tests; keep inline overrides in examples for completeness but default to file-based configuration.
-- Add fixtures validating HTTP vs. stdio normalization, header/env behavior, and editor config imports (Cursor, Claude Code/Desktop, Codex, Windsurf, VS Code) to ensure priority ordering matches defaults.
+- Add fixtures validating HTTP vs. stdio normalization, header/env behavior, and editor config imports (Cursor, Claude Code/Desktop, Codex, Windsurf, OpenCode, VS Code) to ensure priority ordering matches defaults.
