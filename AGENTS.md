@@ -56,10 +56,11 @@ git history and `~/Developer/GitHub/_manifests/llm-wiki-vault-retirement-2026-07
 
 Read wiki pages as reference when a task benefits from existing context.
 Hosted lanes (Codex, Ollama Cloud, or any third-party model) may open only
-pages whose frontmatter says `lane: hosted-ok`; anthropic-only pages and the
-retirement archive stay on Anthropic-side lanes. Do not edit the wiki from
-this repo — knowledge flows in through the wiki's own queue and its
-maintenance sessions.
+pages whose frontmatter says `lane: hosted-ok`; anthropic-only pages stay on
+Anthropic-side lanes. The retirement archive is hosted-eligible per payload
+after a `hosted-redaction-gate` ALLOW (owner decision 2026-07-26). Do not
+edit the wiki from this repo — knowledge flows in through the wiki's own
+queue and its maintenance sessions.
 
 - This repo's entity page: `~/Developer/GitHub/LDMB123/llm-wiki/knowledge/entities/mcporter-repo.md`.
 
