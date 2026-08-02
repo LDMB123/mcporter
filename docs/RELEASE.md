@@ -21,7 +21,7 @@ Shipping a release means **all** of:
 - GitHub release published for the tag **with assets + checksums**.
 - Homebrew tap updated (and verified) after assets propagate.
 
-1. Update version in package.json and src/runtime.ts.
+1. Update version in package.json.
 2. Run pnpm install to refresh the lockfile if dependencies changed.
 3. pnpm check (zero warnings allowed; abort immediately on any error)
 4. pnpm test (must finish with **0 failed**; if Vitest prints any red FAIL lines or a non-zero exit code, stop and fix it before proceeding)
