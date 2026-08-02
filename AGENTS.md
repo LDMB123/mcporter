@@ -54,13 +54,17 @@ hand-edited vault at `home-agent-config/.openclaw/wiki/main` was retired on
 2026-07-26 after full re-synthesis into the wiki; its content is preserved in
 git history and `~/Developer/GitHub/_manifests/llm-wiki-vault-retirement-2026-07-26/`.
 
-Read wiki pages as reference when a task benefits from existing context.
-Hosted lanes (Codex, Ollama Cloud, or any third-party model) may open only
-pages whose frontmatter says `lane: hosted-ok`; anthropic-only pages stay on
-Anthropic-side lanes. The retirement archive is hosted-eligible per payload
-after a `hosted-redaction-gate` ALLOW (owner decision 2026-07-26). Do not
-edit the wiki from this repo — knowledge flows in through the wiki's own
-queue and its maintenance sessions.
+Read wiki pages as reference when a task benefits from existing context. Hosted
+lanes (Codex, Ollama Cloud, or any third-party model) may open only pages whose
+frontmatter says `lane: hosted-ok`; anthropic-only pages stay on Anthropic-side
+lanes. That rule binds the values, not only the pages that hold them: live
+contact and other personal data from the wiki stays off hosted lanes even when
+it sits in a wiki file carrying no `lane:` key — the wiki's own `log.md` holds
+accepted residue — and in any checkout or copy of the wiki (see the wiki's
+`knowledge/concepts/lane-content-matrix.md`). The retirement archive is
+hosted-eligible per payload after a `hosted-redaction-gate` ALLOW (owner
+decision 2026-07-26). Do not edit the wiki from this repo — knowledge flows in
+through the wiki's own queue and its maintenance sessions.
 
 - This repo's entity page: `~/Developer/GitHub/LDMB123/llm-wiki/knowledge/entities/mcporter-repo.md`.
 
