@@ -103,7 +103,7 @@
     ]
   },
   "engines": {
-    "node": ">=24"
+    "node": ">=24 <27"
   },
   "packageManager": "pnpm@10.33.2"
 }
