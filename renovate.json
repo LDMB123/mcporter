@@ -5,5 +5,5 @@
   // it stays in place until Renovate actually lands a real PR here -- then
   // it is removed in a follow-up PR. See PLAN.md guardrail #4
   // (dependency-modernization-2026-07-22/PLAN.md).
-  "extends": ["github>LDMB123/renovate-config#v1.0.0"]
+  "extends": ["github>LDMB123/renovate-config#v1.0.1"]
 }
