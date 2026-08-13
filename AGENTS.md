@@ -13,7 +13,7 @@ should contain only `@AGENTS.md`.
 
 ## Stack
 
-- Package manager: pnpm. `packageManager` is `pnpm@10.33.2`; `pnpm-lock.yaml`
+- Package manager: pnpm. `packageManager` is `pnpm@10.34.5`; `pnpm-lock.yaml`
   is authoritative.
 - Runtime: Node >=24.
 - Bun is required for `./runner`, `./git` or `bin/git`, and
